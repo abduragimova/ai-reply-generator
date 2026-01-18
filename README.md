@@ -10,7 +10,8 @@
 - Prompt Design Approach  
 - Challenges and Edge Cases  
 - How to Run the Project  
-- Sample Emails  
+- Sample Emails
+- Demo
 - Deployment Notes  
 
 ---
