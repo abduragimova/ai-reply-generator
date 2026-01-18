@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Email Reply Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 2em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .file-upload {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="file"] {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .tone-select {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .tone-option {
+            flex: 1;
+            position: relative;
+        }
+        .tone-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+        .tone-option label {
+            display: block;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .tone-option input[type="radio"]:checked + label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .tone-option label:hover {
+            border-color: #667eea;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            position: relative;
+        }
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #ddd;
+        }
+        .divider::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #ddd;
+        }
+        .info-box {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 AI Email Reply Generator</h1>
+        <p class="subtitle">Paste your email or upload a file to get AI-powered reply suggestions</p>
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <div class="info-box">
+            💡 <strong>Tip:</strong> The AI will detect the intent (Inquiry, Complaint, Offer, Information) and generate a professional reply in your chosen tone.
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="email_text">Paste Email Text:</label>
+                <textarea 
+                    name="email_text" 
+                    id="email_text" 
+                    placeholder="Paste the email content here..."
+                >{{ email_text }}</textarea>
+            </div>
+
+            <div class="divider">OR</div>
+
+            <div class="form-group">
+                <label for="email_file">Upload Email File (.txt):</label>
+                <input type="file" name="email_file" id="email_file" accept=".txt">
+            </div>
+
+            <div class="form-group">
+                <label>Select Initial Tone:</label>
+                <div class="tone-select">
+                    <div class="tone-option">
+                        <input type="radio" name="tone" value="formal" id="formal" checked>
+                        <label for="formal">Formal</label>
+                    </div>
+                    <div class="tone-option">
+                        <input type="radio" name="tone" value="friendly" id="friendly">
+                        <label for="friendly">Friendly</label>
+                    </div>
+                    <div class="tone-option">
+                        <input type="radio" name="tone" value="persuasive" id="persuasive">
+                        <label for="persuasive">Persuasive</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn">Generate Reply ✨</button>
+        </form>
+    </div>
+</body>
+</html>
