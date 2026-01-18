@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Analysis & Reply</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .email-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            border: 1px solid #ddd;
+            line-height: 1.6;
+        }
+        .intent-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .reply-editor {
+            width: 100%;
+            min-height: 250px;
+            padding: 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            line-height: 1.6;
+            transition: all 0.3s;
+        }
+        .reply-editor:focus {
+            outline: none;
+            border-color: #5568d3;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .reply-editor:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+        .tone-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .tone-btn {
+            padding: 12px 24px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .tone-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .tone-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        .tone-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .tone-suggestions {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.8;
+            border: 1px solid #ddd;
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            color: #856404;
+            font-weight: bold;
+            margin: 15px 0;
+            border: 1px solid #ffeaa7;
+        }
+        .loading.show {
+            display: block;
+        }
+        .success-message {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #c3e6cb;
+        }
+        .success-message.show {
+            display: block;
+        }
+        .char-count {
+            text-align: right;
+            color: #999;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 Email Analysis & Reply</h1>
+
+        <div class="section">
+            <h2>📨 Original Email:</h2>
+            <div class="email-box">{{ email_text }}</div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Detected Intent:</h2>
+            <span class="intent-badge">{{ intent }}</span>
+        </div>
+
+        <div class="section">
+            <h2>🎨 Switch Reply Tone:</h2>
+            <p style="margin-bottom: 10px; color: #666;">Click a tone to regenerate the reply instantly:</p>
+            <div class="tone-buttons">
+                <button class="tone-btn {% if selected_tone == 'formal' %}active{% endif %}" 
+                        onclick="regenerateReply('formal')" id="btn-formal">
+                    Formal
+                </button>
+                <button class="tone-btn {% if selected_tone == 'friendly' %}active{% endif %}" 
+                        onclick="regenerateReply('friendly')" id="btn-friendly">
+                    Friendly
+                </button>
+                <button class="tone-btn {% if selected_tone == 'persuasive' %}active{% endif %}" 
+                        onclick="regenerateReply('persuasive')" id="btn-persuasive">
+                    Persuasive
+                </button>
+            </div>
+            <div class="loading" id="loading">⏳ Regenerating reply...</div>
+        </div>
+
+        <div class="section">
+            <h2>✏️ Suggested Reply (Editable):</h2>
+            <textarea class="reply-editor" id="replyText">{{ reply }}</textarea>
+            <div class="char-count" id="charCount">{{ reply|length }} characters</div>
+            <div class="success-message" id="successMessage">✓ Reply copied to clipboard!</div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="copyReply()">📋 Copy Reply</button>
+                <button class="btn btn-secondary" onclick="resetReply()">↺ Reset to Original</button>
+                <button class="btn btn-success" onclick="downloadReply()">💾 Download as .txt</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 Tone Guidance:</h2>
+            <div class="tone-suggestions">{{ tone_suggestions }}</div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="window.location.href='/'">
+                ← Analyze New Email
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let originalReply = `{{ reply }}`;
+        const emailText = `{{ email_text }}`;
+        const detectedIntent = `{{ intent }}`;
+
+        // Update character count
+        const replyTextArea = document.getElementById('replyText');
+        const charCount = document.getElementById('charCount');
+        
+        replyTextArea.addEventListener('input', function() {
+            charCount.textContent = this.value.length + ' characters';
+        });
+
+        function copyReply() {
+            const replyText = document.getElementById('replyText');
+            replyText.select();
+            replyText.setSelectionRange(0, 99999); // For mobile devices
+            
+            navigator.clipboard.writeText(replyText.value).then(() => {
+                const successMsg = document.getElementById('successMessage');
+                successMsg.classList.add('show');
+                setTimeout(() => {
+                    successMsg.classList.remove('show');
+                }, 3000);
+            }).catch(() => {
+                // Fallback for older browsers
+                document.execCommand('copy');
+                alert('Reply copied to clipboard!');
+            });
+        }
+
+        function resetReply() {
+            document.getElementById('replyText').value = originalReply;
+            charCount.textContent = originalReply.length + ' characters';
+        }
+
+        function downloadReply() {
+            const replyText = document.getElementById('replyText').value;
+            const blob = new Blob([replyText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'email_reply.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function regenerateReply(tone) {
+            const loading = document.getElementById('loading');
+            const replyText = document.getElementById('replyText');
+            const buttons = document.querySelectorAll('.tone-btn');
+            
+            // Update active button
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.disabled = true;
+            });
+            event.target.classList.add('active');
+
+            // Show loading
+            loading.classList.add('show');
+            replyText.disabled = true;
+
+            // Send request to regenerate
+            fetch('/regenerate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email_text: emailText,
+                    intent: detectedIntent,
+                    tone: tone
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                replyText.value = data.reply;
+                originalReply = data.reply; // Update original for reset button
+                charCount.textContent = data.reply.length + ' characters';
+                loading.classList.remove('show');
+                replyText.disabled = false;
+                buttons.forEach(btn => btn.disabled = false);
+            })
+            .catch(error => {
+                alert('Error regenerating reply: ' + error);
+                loading.classList.remove('show');
+                replyText.disabled = false;
+                buttons.forEach(btn => btn.disabled = false);
+            });
+        }
+    </script>
+</body>
+</html>
