@@ -69,6 +69,26 @@ The project includes sample emails for testing intent detection and response gen
 
 ---
 
+## Demo
+The following images show the workflow of the AI Email Reply Generator:
+
+**1. Main Page – User Input**  
+The user can either paste an email or browse to upload a sample email.  
+
+![Main Page](images/main.jpg)
+
+**2. Original Email and Tone Selection**  
+After submitting, the original email is displayed and the user can choose the tone for the AI-generated reply.  
+
+![Original Email](images/original.png)
+
+**3. AI-Generated Reply – Editable**  
+The AI-generated reply is shown in an editable text area, allowing the user to fine-tune the response before sending.  
+
+![Reply Email](images/reply.jpg)
+
+---
+
 ## Deployment Notes
 
 The application can be deployed on any platform supporting Python and Flask. Static assets are served through Flask’s static folder, making deployment simple and scalable.
